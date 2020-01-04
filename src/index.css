@@ -1,0 +1,79 @@
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: auto;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  padding: 2em;
+  width: 100%;
+  position: relative;
+}
+.devicesOptionContainer {
+  width: 35%;
+  display: flex;
+  flex-direction: column;
+  padding: 0.4em;
+}
+.videoContainer {
+  position: relative;
+  width: inherit;
+  padding: 0.5em;
+}
+.remote_video {
+  position: absolute;
+  right: 4.5%;
+  top: 9%;
+}
+.button-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-items: center;
+  align-items: center;
+}
+
+.btn {
+  width: 140px;
+  height: 40px;
+  letter-spacing: 0.3px;
+  border-radius: 0.2em;
+  border: none;
+  padding: 1em;
+  font-size: 12px;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 0.4em;
+}
+
+.green-btn {
+  background: green;
+  color: white;
+}
+
+.red-btn {
+  background: red;
+  color: white;
+}
+
+video {
+  background: black;
+  border: 1px solid white;
+  margin-bottom: 1em;
+}

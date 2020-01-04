@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello World!</title>
+    <link rel="stylesheet" href="index.css" />
+  </head>
+  <body>
+    <div class="main">
+      <div class="devicesOptionContainer">
+        <label>Select Your Audio Device:</label>
+        <select id="audioDeviceOption"></select>
+        <label>Select Your Video Device:</label>
+        <select id="videoDeviceOption"></select>
+      </div>
+      <div class="videoContainer">
+        <video id="localVideo" class="stream_video" width="100%" height="400" autoplay="true" muted controls></video>
+        <video id="recordedVideo" class="remote_video" width="20%" height="200" controls></video>
+      </div>
+      <button id="toggleCamera" class="btn red-btn">Open Camera</button>
+      <button id="screenCapture" class="btn green-btn">Screen Record</button>
+      <div class="button-container">
+        <button id="start" class="btn green-btn">Start</button>
+        <button id="stop" class="btn red-btn">End</button>
+      </div>
+    </div>
+  </body>
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+  <script src="./rtc.js" async></script>
+</html>

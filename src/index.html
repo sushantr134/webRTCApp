@@ -19,6 +19,7 @@
       </div>
       <button id="toggleCamera" class="btn red-btn">Open Camera</button>
       <button id="screenCapture" class="btn green-btn">Screen Record</button>
+      <button class="btn red-btn" onclick="stopRecordingScreen()">Stop Screen Record</button>
       <div class="button-container">
         <button id="start" class="btn green-btn">Start</button>
         <button id="stop" class="btn red-btn">End</button>
@@ -26,5 +27,7 @@
     </div>
   </body>
   <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-  <script src="./rtc.js" async></script>
+  <!-- <script src="./webrtc_adaptor.js"></script> -->
+  <script src="./rtc.js"></script>
+  <!-- -->
 </html>

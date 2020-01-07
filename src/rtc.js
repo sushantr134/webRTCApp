@@ -1,4 +1,4 @@
-"use strict";
+const { desktopCapturer, ipcRenderer } = require("electron");
 
 const constraints = {
   audio: true,
@@ -140,64 +140,78 @@ toggleCamera.addEventListener("click", init);
 //screen sharing
 
 const screenShareButton = document.querySelector("button#screenCapture");
+let sourceIDScreen = null;
+let screenStream;
+let screenMediaRecord;
 
-const startCapturingScreen = () => {
-  //     return navigator.getDisplayMedia({ video: true });
-  //   } else if (navigator.mediaDevices.getDisplayMedia) {
-  return navigator.mediaDevices.getDisplayMedia({ video: true });
-  //   } else {
-  //return navigator.mediaDevices.getUserMedia({ video: { mediaSource: "screen" } });
-  // desktopCapturer.getSources({ types: ["window", "screen"] }).then(async sources => {
-  //   for (const source of sources) {
-  //     if (source.name === "Electron") {
-  //       return navigator.mediaDevices.getUserMedia({
-  //         audio: false,
-  //         video: {
-  //           mandatory: {
-  //             chromeMediaSource: "desktop",
-  //             chromeMediaSourceId: source.id,
-  //             minWidth: 1280,
-  //             maxWidth: 1280,
-  //             minHeight: 720,
-  //             maxHeight: 720
-  //           }
-  //         }
-  //       });
-  //     }
-  //   }
-  // });
+ipcRenderer.on("source-id-selected", (event, sourceId) => {
+  // Users have cancel the picker dialog.
+  if (!sourceId) return;
+  console.log(sourceId);
+  sourceIDScreen = sourceId;
+  startRecordingScreen(sourceIDScreen);
+});
+
+const recordWindow = () => {
+  ipcRenderer.send("show-picker", { types: ["screen"] });
 };
 
-const startRecordingScreen = () => {
-  let screenStream = null;
-  startCapturingScreen()
-    .then(stream => {
-      screenStream = stream;
-      let screenMediaRecord = new MediaRecorder(screenStream, { mimetype: "video/webm" });
-      screenStream.addEventListener("inactive", () => {
-        stopRecordingScreen(screenStream);
-        screenMediaRecord.stop();
-        alert("Screen capturing Stopped");
-      });
+const successRecordStream = stream => {
+  screenStream = stream;
+  screenMediaRecord = new MediaRecorder(screenStream, { mimetype: "video/webm" });
+  screenStream.addEventListener("inactive", () => {
+    stopRecordingScreen();
+    screenMediaRecord.stop();
+    alert("Screen capturing Stopped");
+  });
 
-      screenMediaRecord.ondataavailable = ({ data }) => {
-        if (data.size > 0) {
-          recorderedVideo.push(data);
-          console.log(data);
-        }
-      };
-      screenMediaRecord.start(10);
-    })
-    .catch(err => {
-      console.log("problem in screen capturing stream");
-    });
+  screenMediaRecord.ondataavailable = ({ data }) => {
+    if (data.size > 0) {
+      recorderedVideo.push(data);
+      console.log(data);
+    }
+  };
+  screenMediaRecord.start(10);
 };
 
-const stopRecordingScreen = stream => {
-  stream.getTracks().forEach(track => track.stop());
-  stream = null;
+const startCapturingScreen = async sourceID => {
+  desktopCapturer.getSources({ types: ["window", "screen"] }, (_ignore, sources) => {
+    for (const source of sources) {
+      console.log(source);
+      if (source.name === "Entire screen") {
+        navigator.mediaDevices
+          .getUserMedia({
+            audio: false,
+            video: {
+              mandatory: {
+                chromeMediaSource: "desktop",
+                chromeMediaSourceId: source.id,
+                minWidth: 1280,
+                maxWidth: 1280,
+                minHeight: 720,
+                maxHeight: 720
+              }
+            }
+          })
+          .then(stream => successRecordStream(stream))
+          .catch(e => {
+            console.log(e);
+          });
+      }
+    }
+  });
+};
+
+const startRecordingScreen = sourceID => {
+  startCapturingScreen(sourceID);
+};
+
+const stopRecordingScreen = () => {
+  screenStream.getVideoTracks()[0].stop();
+  screenStream = null;
+  screenMediaRecord.stop();
   var screenRecorderedBlob = new Blob(recorderedVideo, { type: "video/webm" });
   recordedVideoWindow.src = window.URL.createObjectURL(screenRecorderedBlob);
 };
 
-screenShareButton.addEventListener("click", startRecordingScreen);
+screenShareButton.addEventListener("click", recordWindow);

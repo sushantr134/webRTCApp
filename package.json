@@ -12,6 +12,9 @@
     "build": "electron-packager ./src ElectronScreenRecorder  --platform=win32 --arch=x64 --app-version=0.36.0 --icon=src/Icon.icns",
     "lint": "echo \"No linting configured\""
   },
+  "bin": {
+    "electron-webrtc": "./launch.js"
+  },
   "keywords": [],
   "author": {
     "name": "Sushant Singh",

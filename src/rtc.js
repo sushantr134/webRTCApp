@@ -1,5 +1,5 @@
 const { desktopCapturer, ipcRenderer } = require("electron");
-
+const socket = io(window.location.origin);
 const constraints = {
   audio: true,
   video: {
@@ -7,6 +7,27 @@ const constraints = {
     height: 1080
   }
 };
+
+const config = {
+  iceServers: [
+    {
+      urls: ["stun:stun.l.google.com:19302"]
+    }
+  ]
+};
+
+const rtcPeerConnection = new RTCPeerConnection();
+
+// rtcPeerConnection.onicecandidate = event => {
+//   if (event.candidate) {
+//     socket.emit("candidate", event.candidate);
+//   }
+// };
+
+// socket.on("candidate", candidate => {
+//   const c = new RTCIceCandidate(candidate);
+//   rtcPeerConnection.addIceCandidate(c);
+// });
 
 const recordingOptions = {
   mimetype: "video/mp4",
@@ -157,6 +178,20 @@ const recordWindow = () => {
 };
 
 const successRecordStream = stream => {
+  rtcPeerConnection.addStream(stream);
+  rtcPeerConnection
+    .createOffer()
+    .then(sdp => {
+      rtcPeerConnection
+        .setLocalDescription(sdp)
+        .then(() => {
+          console.log(rtcPeerConnection.localDescription);
+          socket.emit("screenCaptureOffer", rtcPeerConnection.localDescription);
+        })
+        .catch(err => console.log(err));
+    })
+    .catch(err => console.log(err));
+
   screenStream = stream;
   screenMediaRecord = new MediaRecorder(screenStream, { mimetype: "video/webm" });
   screenStream.addEventListener("inactive", () => {
@@ -173,6 +208,10 @@ const successRecordStream = stream => {
   };
   screenMediaRecord.start(10);
 };
+
+socket.on("screenCaptureAnswer", answer => {
+  rtcPeerConnection.setRemoteDescription(answer);
+});
 
 const startCapturingScreen = async sourceID => {
   desktopCapturer.getSources({ types: ["window", "screen"] }, (_ignore, sources) => {

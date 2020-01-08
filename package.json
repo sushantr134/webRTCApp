@@ -5,11 +5,11 @@
   "description": "My Electron application description",
   "main": "src/index.js",
   "scripts": {
-    "start": "browserify src/rtc.js -o src/bundle.js && electron-forge start",
-    "package": "browserify src/rtc.js -o src/bundle.js && electron-forge package",
-    "make": "browserify src/rtc.js -o src/bundle.js && electron-forge make",
-    "publish": "browserify src/rtc.js -o src/bundle.js && electron-forge publish",
-    "build": "electron-packager ./src ElectronScreenRecorder  --platform=win32 --arch=x64 --app-version=0.36.0 --icon=src/Icon.icns",
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "build": "electron-packager . app --platform win32 --arch x64 --out dist/",
     "lint": "echo \"No linting configured\""
   },
   "bin": {
@@ -51,16 +51,20 @@
   "dependencies": {
     "browserify": "^16.5.0",
     "domify": "^1.4.0",
-    "electron-squirrel-startup": "^1.0.0"
+    "ejs": "^3.0.1",
+    "electron-squirrel-startup": "^1.0.0",
+    "express": "^4.17.1",
+    "simple-peer": "^9.6.2",
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {
     "@electron-forge/cli": "6.0.0-beta.47",
-    "electron-packager": "^14.1.1",
-    "electron-prebuilt": "^1.4.13",
     "@electron-forge/maker-deb": "6.0.0-beta.47",
     "@electron-forge/maker-rpm": "6.0.0-beta.47",
     "@electron-forge/maker-squirrel": "6.0.0-beta.47",
     "@electron-forge/maker-zip": "6.0.0-beta.47",
-    "electron": "7.1.7"
+    "electron": "7.1.7",
+    "electron-packager": "^14.1.1",
+    "electron-prebuilt": "^1.4.13"
   }
 }

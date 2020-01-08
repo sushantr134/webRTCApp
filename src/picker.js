@@ -27,6 +27,7 @@ ipcRenderer.on("get-sources", (event, options) => {
       let closure = i => {
         return e => {
           e.preventDefault();
+          alert("Screen Recording started");
           ipcRenderer.send("source-id-selected", sources[i].id);
           sourcesList.innerHTML = "";
         };

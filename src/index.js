@@ -1,5 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
+const serverConfig = require("./server");
+const socket = require("socket.io");
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -11,15 +13,31 @@ if (require("electron-squirrel-startup")) {
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 let pickerDialog;
+let io;
 
 const createWindow = () => {
-  // Create the browser window.
+  const { server, port } = serverConfig;
+  server.listen(port, err => {
+    if (err) throw err;
+    console.log("Server Started at :", port);
+  });
+  io = socket(server);
+  io.sockets.on("connection", socket => {
+    socket.on("screenCaptureOffer", message => {
+      console.log(message);
+      socket.to(socket.id).emit("screenCaptureOffer", message);
+    });
+    socket.on("screenCaptureAnswer", message => {
+      socket.emit("screenCaptureAnswer", message);
+    });
+    // socket.emit("message", "hello from server");
+  });
+
   mainWindow = new BrowserWindow({
     width: 1024,
     height: 768,
     webPreferences: {
-      nodeIntegration: true,
-      nodeIntegrationInWorker: true
+      nodeIntegration: true
     }
   });
 
@@ -35,18 +53,19 @@ const createWindow = () => {
     }
   });
 
-  // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, "index.html"));
-  pickerDialog.loadURL(path.join(__dirname, "picker.html"));
-  // Open the DevTools.
+  mainWindow.loadURL(port === 443 ? "https" : "http" + "://localhost" + `:${port}/`);
+  pickerDialog.loadFile(path.join(__dirname, "picker.html"));
+
   //  mainWindow.webContents.openDevTools();
 
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
-};
 
-app.on("ready", createWindow);
+  pickerDialog.on("closed", () => {
+    pickerDialog = null;
+  });
+};
 
 ipcMain.on("show-picker", (event, options) => {
   pickerDialog.show();
@@ -58,6 +77,8 @@ ipcMain.on("source-id-selected", (event, sourceId) => {
   pickerDialog.hide();
   mainWindow.webContents.send("source-id-selected", sourceId);
 });
+
+app.on("ready", createWindow);
 
 // Quit when all windows are closed.
 app.on("window-all-closed", () => {

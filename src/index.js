@@ -22,15 +22,14 @@ const createWindow = () => {
     console.log("Server Started at :", port);
   });
   io = socket(server);
-  io.sockets.on("connection", socket => {
+  io.on("connection", socket => {
     socket.on("screenCaptureOffer", message => {
-      console.log(message);
-      socket.to(socket.id).emit("screenCaptureOffer", message);
+      //console.log(message);
+      io.emit("screenCaptureOffer", message);
     });
     socket.on("screenCaptureAnswer", message => {
-      socket.emit("screenCaptureAnswer", message);
+      io.emit("screenCaptureAnswer", message);
     });
-    // socket.emit("message", "hello from server");
   });
 
   mainWindow = new BrowserWindow({

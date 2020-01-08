@@ -6,25 +6,37 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
   </head>
   <body>
-    <video style="border: 1px solid black;" width="400" height="500" id="liveStream" class="videoContainer" autoplay></video>
-    <script>
+    <video style="border: 1px solid black;" width="100%" height="500" id="liveStream" class="videoContainer" autoplay controls></video>
+    <script async>
+      //const streamVideoWindow = document.querySelector("video#liveStream");
       const peerConnection = new RTCPeerConnection();
       var socket = io(window.location.origin);
+      socket.on("connect", () => {
+        console.log("connected");
+      });
       socket.on("screenCaptureOffer", offer => {
         console.log(offer);
-        // peerConnection.setRemoteDescription(offer).then(() => {
-        //   peerConnection.createAnswer().then(sdp => {
-        //     peerConnection.setLocalDescription(sdp).then(() => {
-        //       socket.emit("screenCaptureAnswer", peerConnection.localDescription);
-        //     });
-        //   });
-        // });
+        peerConnection
+          .setRemoteDescription(offer)
+          .then(() => {
+            return peerConnection.createAnswer();
+          })
+          .then(answer => {
+            return peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+          })
+          .then(() => {
+            socket.emit("screenCaptureAnswer", peerConnection.localDescription);
+          });
       });
 
-      const streamVideoWindow = document.querySelector("video#liveStream");
       peerConnection.ontrack = event => {
         console.log(event);
-        streamVideoWindow.srcObject = event.streams[0];
+        if (event.streams[0]) {
+          var streamVideoWindow = document.getElementById("liveStream");
+          streamVideoWindow.srcObject = event.streams[0];
+          console.log(event.streams[0]);
+          //streamVideoWindow.play();
+        }
       };
     </script>
   </body>

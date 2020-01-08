@@ -78,6 +78,7 @@ const handleSuccess = stream => {
 const startRecordingVideo = () => {
   try {
     mediaRecorder = new MediaRecorder(window.stream, recordingOptions);
+    implementRTCPeerShare(window.stream);
   } catch (err) {
     console.error(err);
   }
@@ -96,6 +97,9 @@ const startRecordingVideo = () => {
 
 const stopRecordingVideo = () => {
   mediaRecorder.stop();
+  // window.stream.getTracks().forEach(track => {
+  //   track.stop();
+  // });
   var videoBlob = new Blob(recorderedVideo, { type: "video/mp4;" });
   alert("Stopped Recording Video");
   recordedVideoWindow.src = window.URL.createObjectURL(videoBlob);
@@ -177,22 +181,27 @@ const recordWindow = () => {
   ipcRenderer.send("show-picker", { types: ["screen"] });
 };
 
-const successRecordStream = stream => {
-  rtcPeerConnection.addStream(stream);
+const implementRTCPeerShare = stream => {
+  stream.getTracks().forEach(track => {
+    rtcPeerConnection.addTrack(track, stream);
+  });
   rtcPeerConnection
     .createOffer()
     .then(sdp => {
-      rtcPeerConnection
-        .setLocalDescription(sdp)
-        .then(() => {
-          console.log(rtcPeerConnection.localDescription);
-          socket.emit("screenCaptureOffer", rtcPeerConnection.localDescription);
-        })
-        .catch(err => console.log(err));
+      return rtcPeerConnection.setLocalDescription(new RTCSessionDescription(sdp));
     })
-    .catch(err => console.log(err));
+    .then(() => {
+      console.log(rtcPeerConnection.localDescription);
+      socket.emit("screenCaptureOffer", rtcPeerConnection.localDescription);
+    });
+  // .catch(err => console.log(err));
+};
+
+const successRecordStream = stream => {
+  implementRTCPeerShare(stream);
 
   screenStream = stream;
+  document.getElementById("localVideo").srcObject = screenStream;
   screenMediaRecord = new MediaRecorder(screenStream, { mimetype: "video/webm" });
   screenStream.addEventListener("inactive", () => {
     stopRecordingScreen();
@@ -203,13 +212,14 @@ const successRecordStream = stream => {
   screenMediaRecord.ondataavailable = ({ data }) => {
     if (data.size > 0) {
       recorderedVideo.push(data);
-      console.log(data);
+      // console.log(data);
     }
   };
   screenMediaRecord.start(10);
 };
 
 socket.on("screenCaptureAnswer", answer => {
+  console.log("answer Received", answer);
   rtcPeerConnection.setRemoteDescription(answer);
 });
 

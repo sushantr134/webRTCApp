@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Ant-media Test</title>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script src="./js/webrtc_adaptor.js"></script>
+</head>
+<body>
+<video id="localVideo" autoplay muted width="480"></video>
+<div>
+    <button id="startBtn">Start</button>
+    <button id="endBtn">End</button>
+</div>
+<script>
+    var pc_config = null;
+    let info_recv;
+    var sdpConstraints = {
+        OfferToReceiveAudio: false,
+        OfferToReceiveVideo: false
+    };
+    var mediaConstraints = {
+        video: true,
+        audio: true
+    };
+
+    var webRTCAdaptor = new WebRTCAdaptor({
+        websocket_url: "ws://localhost:5080/WebRTCApp/websocket",
+        mediaConstraints: mediaConstraints,
+        peerconnection_config: pc_config,
+        sdp_constraints: sdpConstraints,
+        localVideoId: "localVideo",
+        callback: function(info) {
+            info_recv = info;
+            console.log(info);
+            if (info == "initialized") {
+                console.log("initialized");
+                webRTCAdaptor.publish("stream1");
+            } else if (info == "publish_started") {
+                //stream is being published
+                console.log("publish started");
+            } else if (info == "publish_finished") {
+                //stream is finished
+                console.log("publish finished");
+            } else if (info == "screen_share_extension_available") {
+                //screen share extension is avaiable
+                console.log("screen share extension available");
+            } else if (info == "screen_share_stopped") {
+                //"Stop Sharing" is clicked in chrome screen share dialog
+                console.log("screen share stopped");
+            }
+        },
+        callbackError: function(error) {
+            console.log("error callback: ", error);
+            //alert(error);
+        }
+    });
+
+    const startBtn = document.getElementById("startBtn");
+    const endBtn = document.getElementById("endBtn");
+
+    startBtn.addEventListener("click", () => {
+        //alert("hello");
+        if (info_recv === "initialized") {
+            webRTCAdaptor.publish("stream1");
+        }
+    });
+</script>
+</body>
+</html>
